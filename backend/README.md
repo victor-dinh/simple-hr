@@ -33,7 +33,7 @@ Simple HR dashboard
 
 2. Open your browser or a tool like Postman, and make a GET request to:
     ```
-    http://localhost:3030/
+    http://localhost:8080/
     ```
    This endpoint will create all necessary tables in your PostgreSQL database.
 
@@ -44,7 +44,7 @@ Simple HR dashboard
     npm run dev
     ```
 
-2. The API will be accessible at `http://localhost:3030`.
+2. The API will be accessible at `http://localhost:8080`.
 
 ## API Endpoints
 
@@ -76,8 +76,6 @@ Simple HR dashboard
    - Request body:
      ```json
      {
-        "full_name": "Test",
-        "email": "test@gmail.com",
         "password": "123456",
         "phone": "090999999",
         "address_line_1": "123 CH, TB ",
@@ -103,14 +101,8 @@ Simple HR dashboard
       ```
     - Response: 200 OK, 401 Unauthorized
 
-## Testing
+* For these API need authentication, please add 'x-access-token + token' to test API
 
-1. To run tests:
-    ```bash
-    npm run test
-    ```
-
-2. Tests are written using Jest and Supertest. They are located in the `tests` directory.
 
 ## License
 
