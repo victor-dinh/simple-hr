@@ -1,50 +1,47 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Formik, Field, Form, ErrorMessage } from "formik";
 import * as Yup from "yup";
 
 import { register, login } from "../slices/auth";
-import { clearMessage } from "../slices/message";
+import { setMessage, clearMessage } from "../slices/message";
 
 const Register = () => {
     const [successful, setSuccessful] = useState(false);
     let navigate = useNavigate();
-    const { message } = useSelector((state) => state.message);
     const dispatch = useDispatch();
+    const { message } = useSelector((state) => state.message);
 
     useEffect(() => {
         dispatch(clearMessage());
     }, [dispatch]);
 
     const initialValues = {
-        full_name: "1",
-        email: "1@gmail.com",
-        password: "1",
-        confirmPassword: "1",
+        full_name: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
     };
 
     const validationSchema = Yup.object().shape({
         full_name: Yup.string()
             .required("This field is required!"),
         email: Yup.string()
-            // .email("Enter avalid email address")
+            .email("Enter a valid email address")
             .required("This field is required!"),
         password: Yup.string()
-            .required("This field is required!"),
-
-        // password: Yup.string()
-        //     .required("This field is required!")
-        //     .test(
-        //         "is-strong-password",
-        //         "Password must be at least 8 characters, include 2 numbers and 2 symbols.",
-        //         function (value) {
-        //             if (!value) return false;
-        //             const numMatches = (value.match(/[0-9]/g) || []).length;
-        //             const symbolMatches = (value.match(/[^A-Za-z0-9]/g) || []).length;
-        //             return value.length >= 8 && numMatches >= 2 && symbolMatches >= 2;
-        //         }
-        //     ),
+            .required("This field is required!")
+            .test(
+                "is-strong-password",
+                "Password must be at least 8 characters, include 2 numbers and 2 symbols.",
+                function (value) {
+                    if (!value) return false;
+                    const numMatches = (value.match(/[0-9]/g) || []).length;
+                    const symbolMatches = (value.match(/[^A-Za-z0-9]/g) || []).length;
+                    return value.length >= 8 && numMatches >= 2 && symbolMatches >= 2;
+                }
+            ),
         confirmPassword: Yup.string()
             .required('This field is required!')
             .oneOf([Yup.ref('password')], 'Your passwords do not match.')
@@ -52,7 +49,6 @@ const Register = () => {
 
     const handleRegister = (formValue) => {
         const { full_name, email, password } = formValue;
-
         setSuccessful(false);
 
         dispatch(register({ full_name, email, password }))
@@ -62,14 +58,18 @@ const Register = () => {
                 dispatch(login({ email, password }))
                     .unwrap()
                     .then(() => {
+
+                        console.log('✌️message --->', message);
+                        dispatch(setMessage({ message: "Your account has been created.", messageType: "success" }));
                         navigate("/dashboard");
                     })
                     .catch(() => {
                         setSuccessful(false);
                     });
             })
-            .catch(() => {
+            .catch((errorMessage) => {
                 setSuccessful(false);
+                dispatch(setMessage({ message: errorMessage, messageType: "error" }));
             });
     };
 
@@ -80,7 +80,7 @@ const Register = () => {
                 {message && (
                     <div className="form-group">
                         <div
-                            className={successful ? "alert alert-success" : "text-danger"}
+                            className={successful ? "alert alert-success" : "alert alert-danger"}
                             role="alert"
                         >
                             {message}
@@ -150,7 +150,7 @@ const Register = () => {
                                     <button id="register-btn" type="submit" className="w-100 btn btn-primary btn-block">Sign Up</button>
                                 </div>
                                 <div className="form-group">
-                                    <p>Already have an account? <a href="/login">Login here.</a></p>
+                                    <p>Already have an account? <Link to="/login">Login here.</Link></p>
                                 </div>
                             </div>
                         )}

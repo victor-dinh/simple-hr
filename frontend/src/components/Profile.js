@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import UserService from "../services/user.service";
 import { useDispatch, useSelector } from "react-redux";
 import { HomeIcon, UserCircleIcon, BriefcaseIcon } from '@heroicons/react/24/solid';
@@ -9,7 +9,7 @@ import * as Yup from "yup";
 
 import { logout } from "../slices/auth";
 
-import { clearMessage } from "../slices/message";
+import { setMessage, clearMessage } from "../slices/message";
 
 const Profile = () => {
   const [user, setUser] = useState("");
@@ -17,28 +17,28 @@ const Profile = () => {
   const dispatch = useDispatch();
   const { user: currentUser } = useSelector((state) => state.auth);
   const userId = currentUser?.id;
-  const [refreshTrigger, setRefreshTrigger] = useState(false);
   const logOut = useCallback(() => {
     dispatch(logout());
   }, [dispatch]);
 
-  const { message } = useSelector((state) => state.message);
+  const { message, messageType } = useSelector((state) => state.message);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      dispatch(clearMessage());
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, [message, dispatch]);
+
+  const fetchUserData = useCallback(() => {
+    UserService.getUser(userId).then((res) => {
+      setUser(res.data);
+    });
+  }, [userId]);
 
   useEffect(() => {
-    dispatch(clearMessage());
-    UserService.getUser(userId).then(
-      (response) => {
-        setUser(response.data);
-      },
-      (error) => {
-        const _data =
-          (error.response && error.response.data) ||
-          error.message ||
-          error.toString();
-        setUser(_data);
-      }
-    );
-  }, [userId,refreshTrigger, logOut, dispatch]);
+    if (userId) fetchUserData();
+  }, [userId, fetchUserData]);
 
   const initialValues = {
     full_name: user.full_name || "",
@@ -58,18 +58,26 @@ const Profile = () => {
     UserService.updateUser(userId, formValue)
       .then((response) => {
         setUser(response.data);
+        fetchUserData();
         setLoading(false);
-        setRefreshTrigger((prev) => !prev);
+        dispatch(setMessage({
+          message: "Profile updated successfully.",
+          messageType: "success"
+        }));
       })
       .catch((error) => {
         setLoading(false);
+        dispatch(setMessage({
+          message: "Failed to update profile.",
+          messageType: "error"
+        }));
       });
   };
 
   const validationSchema = Yup.object().shape({
-    email: Yup.string()
-      .email("Enter avalid email address")
-      .required("This field is required!"),
+    // email: Yup.string()
+    //   .email("Enter a valid email address")
+    //   .required("This field is required!"),
   });
 
   if (!currentUser) {
@@ -87,15 +95,15 @@ const Profile = () => {
             </div>
             <div>
               <strong>{user.full_name}</strong>
-              <div><a id="logout" href="#" className="btn-log-out" onClick={logOut}>Log out</a></div>
+              <div><Link to="/" id="logout" className="btn-log-out" onClick={logOut}>Log out</Link></div>
             </div>
           </div>
           <ul className="nav flex-column mt-4">
             <li className="nav-item">
-              <a href="/"><HomeIcon className="me-2" width={20} />Home</a>
+              <Link to="/" ><HomeIcon className="me-2" width={20} />Home</Link>
             </li>
             <li className="nav-item">
-              <a href="/"><BriefcaseIcon className="me-2" width={20} />Projects</a>
+              <Link to="/" ><BriefcaseIcon className="me-2" width={20} />Projects</Link>
             </li>
           </ul>
         </div>
@@ -105,13 +113,13 @@ const Profile = () => {
         <div className="profile-header">
           <h3>Profile</h3>
           <ul className="nav col-12">
-            <li className="nav-item"><a href="#" className="active nav-link"><strong>Overview</strong></a></li>
+            <li className="nav-item"><Link to="#" className="active nav-link"><strong>Overview</strong></Link></li>
           </ul>
         </div>
         <div className="profile-content">
           {message && (
             <div className="form-group">
-              <div className="alert alert-danger" role="alert">
+              <div className={`alert alert-${messageType === "error" ? "danger" : "success"}`} role="alert">
                 {message}
               </div>
             </div>
@@ -181,6 +189,5 @@ const Profile = () => {
     </div>
   );
 };
-
 
 export default Profile;

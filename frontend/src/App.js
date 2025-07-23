@@ -10,7 +10,6 @@ import Login from "./components/Login";
 import Register from "./components/Register";
 import Profile from "./components/Profile";
 
-
 import { logout } from "./slices/auth";
 
 import EventBus from "./common/EventBus";

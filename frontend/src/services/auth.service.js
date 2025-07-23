@@ -29,10 +29,16 @@ const logout = () => {
   localStorage.removeItem("user");
 };
 
+const getCurrentUser = () => {
+  const user = localStorage.getItem("user");
+  return user ? JSON.parse(user) : null;
+};
+
 const authService = {
   register,
   login,
   logout,
+  getCurrentUser
 };
 
 export default authService;
