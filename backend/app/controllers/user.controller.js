@@ -33,12 +33,9 @@ exports.updateProfile = (req, res) => {
         return res.status(404).send({ message: "User Not found." });
       }
 
-      // update User
       User.update(
         // req.body
         {
-          full_name: req.body.full_name,
-          // email: req.body.email,
           address_line_1: req.body.address_line_1,
           address_line_2: req.body.address_line_2,
           phone_number: req.body.phone_number,
